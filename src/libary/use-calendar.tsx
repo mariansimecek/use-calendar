@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 //TODO: hour mode
 //TODO: add useCallback and useMemo to optimize
-
-
 
 interface UseCalendarOptions {
   initalDate?: Date
@@ -25,19 +23,33 @@ interface DateUnit {
 }
 type CalendarWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
-export const useCalendar = (options: UseCalendarOptions) => {
+export const useCalendar = (options?: UseCalendarOptions) => {
   const [currentDate, setCurrentDate] = useState(options?.initalDate || new Date())
   const [mode, setMode] = useState<CalendarMode>(options?.initalMode || "month")
   const yearToRender = options?.yearToRender || 14
+  const weekStartsOn = options?.weekStartsOn || 0
 
+  const getWeeks = useCallback(() => {
+    // get weeks and shift by weekStartsOn
+    const weeks = [...Array(7)].map((_, i) => (i + weekStartsOn) % 7)
+    return weeks as CalendarWeek[]
+  }, [weekStartsOn])
+
+  const weeks: CalendarWeek[] = getWeeks()
   function moveDateByDay(date: Date, amount: number, direction: boolean): Date {
-    return new Date(date.setDate(date.getDate() + (direction ? amount : -amount)))
+    const newDate = new Date(date)
+    newDate.setDate(date.getDate() + (direction ? amount : -amount))
+    return newDate
   }
   function moveDateByMonth(date: Date, amount: number, direction: boolean): Date {
-    return new Date(date.setMonth(date.getMonth() + (direction ? amount : -amount)))
+    const newDate = new Date(date)
+    newDate.setMonth(date.getMonth() + (direction ? amount : -amount))
+    return newDate
   }
   function moveDateByYear(date: Date, amount: number, direction: boolean): Date {
-    return new Date(date.setFullYear(date.getFullYear() + (direction ? amount : -amount)))
+    const newDate = new Date(date)
+    newDate.setFullYear(date.getFullYear() + (direction ? amount : -amount))
+    return newDate
   }
 
   function prev() {
@@ -58,7 +70,9 @@ export const useCalendar = (options: UseCalendarOptions) => {
   }
 
   function zoomIn(date: Date) {
-    setCurrentDate(date)
+    if (currentDate.getTime() !== date.getTime()) {
+      setCurrentDate(date)
+    }
     switch (mode) {
       case "year": setMode("month"); break;
       case "decade": setMode("year"); break;
@@ -66,6 +80,7 @@ export const useCalendar = (options: UseCalendarOptions) => {
       default: throw new Error("Invalid mode")
     }
   }
+
 
   function zoomOut() {
     switch (mode) {
@@ -85,7 +100,6 @@ export const useCalendar = (options: UseCalendarOptions) => {
     }
   }
   function getMonthItems(currentDate: Date): DateUnit[] {
-
     const monthLength = getDaysInMonth(currentDate);
     const days: DateUnit[] = []
     for (let index = 0; index < monthLength; index++) {
@@ -96,29 +110,28 @@ export const useCalendar = (options: UseCalendarOptions) => {
         inMonth: true
       })
     }
-    if (options.alignByWeek) {
-      const firstDay = days[0].date.getDay()
-      const missingDaysCount = firstDay - (options.weekStartsOn || 0)
-
+    if (options?.alignByWeek) {
+      const firstDayWeek = days[0].date.getDay()
+      const missingDayCount = weeks.indexOf(firstDayWeek as CalendarWeek)
       const daysToPrepend: DateUnit[] = []
-      let prependigDay = currentDate
-      for (let index = 0; index < missingDaysCount; index++) {
+      let prependigDay = days[0].date
+      for (let index = 0; index < missingDayCount; index++) {
         prependigDay = moveDateByDay(prependigDay, 1, false)
         daysToPrepend.push({
           type: "day",
           date: prependigDay,
           inMonth: false,
           num: prependigDay.getDate()
+
         })
-        days.unshift(...daysToPrepend)
       }
+      days.unshift(...daysToPrepend.reverse())
     }
-    if (options.appendDaysToFillRect) {
-      const fillCount = Math.ceil((days.length / 7) * 7 - days.length)
-      console.log(fillCount)
+    if (options?.appendDaysToFillRect) {
+      const missingDays = Math.ceil(days.length / 7) * 7 - days.length;
       const daysToAppend: DateUnit[] = []
-      let appendingDay = currentDate
-      for (let index = 0; index < fillCount; index++) {
+      let appendingDay = days[days.length - 1].date
+      for (let index = 0; index < missingDays; index++) {
         appendingDay = moveDateByDay(appendingDay, 1, true)
         daysToAppend.push({
           type: "day",
@@ -144,7 +157,6 @@ export const useCalendar = (options: UseCalendarOptions) => {
         date: dateContructor(currentDate, { month: index })
       })
     }
-    console.log(months)
     return months
   }
 
@@ -163,11 +175,6 @@ export const useCalendar = (options: UseCalendarOptions) => {
 
   const items: DateUnit[] = getItemsToRender()
 
-  function getWeeks() {
-    // get weeks and shift by weekStartsOn
-    return [0, 1, 2, 3, 4, 5, 6] as CalendarWeek[]
-  }
-  const weeks: CalendarWeek[] = getWeeks()
 
   return { prev, next, items, mode, weeks, options, zoomIn, zoomOut, currentDate }
 }

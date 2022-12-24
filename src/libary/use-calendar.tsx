@@ -10,10 +10,17 @@ interface UseCalendarOptions {
   maxDate?: Date
   alignByWeek?: boolean
   appendDaysToFillRect?: boolean
-  yearToRender?: number
+  yearsToRender?: number
 }
 
-type CalendarMode = "month" | "year" | "decade"
+export const VIEW_MODE = {
+  MONTH: "month",
+  YEAR: "year",
+  DECADE: "decade"
+} as const;
+
+type ObjectValues<T> = T[keyof T]
+type CalendarMode = ObjectValues<typeof VIEW_MODE>
 
 interface DateUnit {
   num: number,
@@ -25,8 +32,8 @@ type CalendarWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 export const useCalendar = (options?: UseCalendarOptions) => {
   const [currentDate, setCurrentDate] = useState(options?.initalDate || new Date())
-  const [mode, setMode] = useState<CalendarMode>(options?.initalMode || "month")
-  const yearToRender = options?.yearToRender || 14
+  const [mode, setMode] = useState<CalendarMode>(options?.initalMode || VIEW_MODE.MONTH)
+  const yearToRender = options?.yearsToRender || 14
   const weekStartsOn = options?.weekStartsOn || 0
 
   const getWeeks = useCallback(() => {
@@ -54,17 +61,17 @@ export const useCalendar = (options?: UseCalendarOptions) => {
 
   function prev() {
     switch (mode) {
-      case "month": setCurrentDate(moveDateByMonth(currentDate, 1, false)); break;
-      case "year": setCurrentDate(moveDateByYear(currentDate, 1, false)); break;
-      case "decade": setCurrentDate(moveDateByYear(currentDate, yearToRender, false)); break;
+      case VIEW_MODE.MONTH: setCurrentDate(moveDateByMonth(currentDate, 1, false)); break;
+      case VIEW_MODE.YEAR: setCurrentDate(moveDateByYear(currentDate, 1, false)); break;
+      case VIEW_MODE.DECADE: setCurrentDate(moveDateByYear(currentDate, yearToRender, false)); break;
       default: console.warn("Mode not found"); break;
     }
   }
   function next() {
     switch (mode) {
-      case "month": setCurrentDate(moveDateByMonth(currentDate, 1, true)); break;
-      case "year": setCurrentDate(moveDateByYear(currentDate, 1, true)); break;
-      case "decade": setCurrentDate(moveDateByYear(currentDate, yearToRender, true)); break;
+      case VIEW_MODE.MONTH: setCurrentDate(moveDateByMonth(currentDate, 1, true)); break;
+      case VIEW_MODE.YEAR: setCurrentDate(moveDateByYear(currentDate, 1, true)); break;
+      case VIEW_MODE.DECADE: setCurrentDate(moveDateByYear(currentDate, yearToRender, true)); break;
       default: console.warn("Mode not found"); break;
     }
   }
@@ -74,9 +81,9 @@ export const useCalendar = (options?: UseCalendarOptions) => {
       setCurrentDate(date)
     }
     switch (mode) {
-      case "year": setMode("month"); break;
-      case "decade": setMode("year"); break;
-      case "month": console.warn("Can't zoom in more"); break;
+      case VIEW_MODE.YEAR: setMode("month"); break;
+      case VIEW_MODE.DECADE: setMode("year"); break;
+      case VIEW_MODE.MONTH: console.warn("Can't zoom in more"); break;
       default: throw new Error("Invalid mode")
     }
   }
@@ -84,18 +91,18 @@ export const useCalendar = (options?: UseCalendarOptions) => {
 
   function zoomOut() {
     switch (mode) {
-      case "month": setMode("year"); break;
-      case "year": setMode("decade"); break;
-      case "decade": console.warn("Can't zoom out more"); break;
+      case VIEW_MODE.MONTH: setMode("year"); break;
+      case VIEW_MODE.YEAR: setMode("decade"); break;
+      case VIEW_MODE.DECADE: console.warn("Can't zoom out more"); break;
       default: throw new Error("Invalid mode")
     }
   }
 
   function getItemsToRender() {
     switch (mode) {
-      case "month": return getMonthItems(currentDate)
-      case "year": return getYearItems(currentDate)
-      case "decade": return getDecadeItems(currentDate)
+      case VIEW_MODE.MONTH: return getMonthItems(currentDate)
+      case VIEW_MODE.YEAR: return getYearItems(currentDate)
+      case VIEW_MODE.DECADE: return getDecadeItems(currentDate)
       default: return []
     }
   }
@@ -146,8 +153,13 @@ export const useCalendar = (options?: UseCalendarOptions) => {
   }
 
   function dateContructor(date: Date, { year, month, day }: { year?: number, month?: number, day?: number }) {
-    return new Date(year || date.getFullYear(), month || date.getMonth(), day || date.getDate())
+    const _year = year !== undefined ? year : date.getFullYear()
+    const _month = month !== undefined ? month : date.getMonth()
+    const _day = day !== undefined ? day : date.getDate()
+    return new Date(_year, _month, _day)
   }
+
+
   function getYearItems(currentDate: Date): DateUnit[] {
     const months: DateUnit[] = []
     for (let index = 0; index < 12; index++) {
@@ -174,7 +186,6 @@ export const useCalendar = (options?: UseCalendarOptions) => {
   }
 
   const items: DateUnit[] = getItemsToRender()
-
 
   return { prev, next, items, mode, weeks, options, zoomIn, zoomOut, currentDate }
 }

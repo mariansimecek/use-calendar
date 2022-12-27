@@ -1,3 +1,4 @@
+import { isToday } from "date-fns"
 import { useCallback, useState } from "react"
 //TODO: hour mode
 //TODO: add useCallback and useMemo to optimize
@@ -27,6 +28,7 @@ interface DateUnit {
   type: "day" | "month" | "year"
   date: Date
   inMonth?: boolean
+  today?: boolean
 }
 type CalendarWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
@@ -114,7 +116,8 @@ export const useCalendar = (options?: UseCalendarOptions) => {
         num: index + 1,
         type: "day",
         date: dateContructor(currentDate, { day: index + 1 }),
-        inMonth: true
+        inMonth: true,
+        today: isToday(dateContructor(currentDate, { day: index + 1 }))
       })
     }
     if (options?.alignByWeek) {
@@ -128,8 +131,8 @@ export const useCalendar = (options?: UseCalendarOptions) => {
           type: "day",
           date: prependigDay,
           inMonth: false,
-          num: prependigDay.getDate()
-
+          num: prependigDay.getDate(),
+          today: isToday(dateContructor(currentDate, { day: index + 1 }))
         })
       }
       days.unshift(...daysToPrepend.reverse())
@@ -144,7 +147,8 @@ export const useCalendar = (options?: UseCalendarOptions) => {
           type: "day",
           date: appendingDay,
           inMonth: false,
-          num: appendingDay.getDate()
+          num: appendingDay.getDate(),
+          today: isToday(dateContructor(currentDate, { day: index + 1 }))
         })
       }
       days.push(...daysToAppend)
@@ -166,7 +170,8 @@ export const useCalendar = (options?: UseCalendarOptions) => {
       months.push({
         num: index + 1,
         type: "month",
-        date: dateContructor(currentDate, { month: index })
+        date: dateContructor(currentDate, { month: index }),
+        today: isToday(dateContructor(currentDate, { month: index }))
       })
     }
     return months
@@ -179,7 +184,8 @@ export const useCalendar = (options?: UseCalendarOptions) => {
       years.push({
         num: year + index,
         type: "year",
-        date: dateContructor(currentDate, { year: year + index })
+        date: dateContructor(currentDate, { year: year + index }),
+        today: isToday(dateContructor(currentDate, { year: year + index }))
       })
     }
     return years
@@ -189,8 +195,6 @@ export const useCalendar = (options?: UseCalendarOptions) => {
 
   return { prev, next, items, mode, weeks, options, zoomIn, zoomOut, currentDate }
 }
-
-
 
 
 function getDaysInMonth(date: Date) {

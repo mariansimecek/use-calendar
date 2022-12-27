@@ -1,10 +1,9 @@
 import { isToday } from "date-fns"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 //TODO: hour mode
 //TODO: add useCallback and useMemo to optimize
 //TODO: add selection feature
 //TODO: add range feature
-//TODO: move by keyboard
 
 interface UseCalendarOptions {
   initalDate?: Date
@@ -48,6 +47,25 @@ export const useCalendar = (options?: UseCalendarOptions) => {
   }, [weekStartsOn])
 
   const weeks: CalendarWeek[] = getWeeks()
+
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'ArrowLeft': prev(); break;
+        case 'ArrowRight': next(); break;
+        case 'ArrowUp': zoomOut(); break;
+        case 'ArrowDown': zoomIn(currentDate); break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  });
   function moveDateByDay(date: Date, amount: number, direction: boolean): Date {
     const newDate = new Date(date)
     newDate.setDate(date.getDate() + (direction ? amount : -amount))

@@ -2,6 +2,7 @@ import { isToday } from "date-fns"
 import { useCallback, useState } from "react"
 //TODO: hour mode
 //TODO: add useCallback and useMemo to optimize
+//TODO: add selection feature
 
 interface UseCalendarOptions {
   initalDate?: Date

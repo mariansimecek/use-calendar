@@ -3,6 +3,8 @@ import { useCallback, useState } from "react"
 //TODO: hour mode
 //TODO: add useCallback and useMemo to optimize
 //TODO: add selection feature
+//TODO: add range feature
+//TODO: move by keyboard
 
 interface UseCalendarOptions {
   initalDate?: Date

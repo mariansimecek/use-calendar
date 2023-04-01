@@ -8,7 +8,7 @@ const Calendar = () => {
   const { prev, next, items, mode, weeks, options, zoomIn, zoomOut, currentDate } = useCalendar({ yearsToRender: 12, alignByWeek: true, appendDaysToFillRect: true, weekStartsOn: 1 });
 
   return (
-    <div className='w-[400px] m-10'>
+    <div className='w-[400px] m-4'>
       <div className='flex justify-between items-center py-3'>
         <button className='p-3 rounded-full text-zinc-600 hover:text-zinc-800 hover:bg-gray-300 transition-colors' onClick={() => { prev() }}><IconArrowLeft /></button>
         <button onClick={() => { zoomOut() }}>{format(currentDate, 'EEEE dd. MMMM yyyy', { locale: cs })}</button>

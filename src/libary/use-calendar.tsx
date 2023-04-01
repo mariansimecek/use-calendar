@@ -60,13 +60,13 @@ export const useCalendar = (options?: UseCalendarOptions) => {
       }
     };
 
-    window.addEventListener('keydown', handleKeydown);
+     window.addEventListener('keydown', handleKeydown);
 
     return () => {
       window.removeEventListener('keydown', handleKeydown);
     };
   });
-  function moveDateByDay(date: Date, amount: number, direction: boolean): Date {
+    function moveDateByDay(date: Date, amount: number, direction: boolean): Date {
     const newDate = new Date(date)
     newDate.setDate(date.getDate() + (direction ? amount : -amount))
     return newDate
